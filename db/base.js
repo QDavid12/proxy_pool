@@ -10,53 +10,62 @@ function DB(params){
     // console.log('[db] create error: name needed!');
     return false;
   }
-  this.path = path.resolve(__dirname, './db-files/'+this.name+'.json');
+  this.path = path.resolve(__dirname, './db-files/'+this.name+'.db.json');
   if(fs.existsSync(this.path)){
-    console.log('[db] load from file:', this.name);
-    this.data = require(this.path);
+    try{
+      console.log('[db] load from file:', this.name);
+      this.data = require(this.path);
+    } catch(e) {
+      console.log('[db] load from file error:', this.name);
+      this.data = {};
+    }
   } else {
     this.data = {};
     this.save();
   }
-  this.autoSave = o.autoSave||false;
-  this.saveTime = o.saveTime||60;
+  this.autoSave = o.autoSave||true;
+  this.saveTime = o.saveTime||-1;
   if(this.saveTime>0){
     this.timer = setInterval(function(){
-      that.save(true);
+      that.save();
     }, this.saveTime*1000);
   }
   // console.log('[db] create success:', this.name);
 }
 
 DB.prototype = {
-  save: function(auto){
+  save: function(callback){
     var that = this;
     fs.writeFile(this.path, JSON.stringify(this.data), function(err){
       if(err){
-        console.log('[db] save error', that.name, err);
+        console.log('[db] save error:', that.name, err);
+      } else {
+        console.log('[db] save success:', that.name);
       }
+      if(callback) callack(err);
     });
   },
-  set: function(data, save){
+  set: function(data, save, callback){
     var d = data||{};
     for(var key in d){
       this.data[key] = d[key];
     }
+    this.data._lastUpdate = (new Date()).toLocaleString();
     if(save||this.autoSave){
-      this.save();
+      this.save(callback);
     }
   },
-  get: function(key){
-    return extend({}, this.data[key]);
+  get: function(){
+    return extend({}, this.data);
   }
 };
 
-var db = new DB({
-  name: 'index'
-});
-db.set({
-  udpated: '123'
-}, true);
-console.log(db.data);
+// var db = new DB({
+//   name: 'test'
+// });
+// db.set({
+//   udpated: '123'
+// }, true);
+// console.log(db.data);
 
 module.exports = DB;

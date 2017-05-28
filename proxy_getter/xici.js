@@ -3,9 +3,13 @@ var cheerio = require('cheerio');
 
 var url = 'http://www.xicidaili.com/nn/';
 
-// getList();
+if(require.main===module){
+  getList();
+}
+
 function getList(callback){
-  var pages = 3;
+  var pages = 10; // how many pages
+  var count = 1;
   var res = [];
   var endCallback = function(list){
     pages--;
@@ -13,23 +17,24 @@ function getList(callback){
     if(pages===0){
       console.log('[proxy getter] xici got', res.length);
       if(callback) callback(res);
+      return;
     }
+    getXiciPage(++count, endCallback);
   };
-  for(var i=0;i<pages;i++){
-    getXiciPage(i+1, endCallback);
-  }
+  getXiciPage(1, endCallback);
 }
 
 function getXiciPage(page, callback){
   var result = [],
-      p = p||1;
+      p = page||1;
+  // console.log(p);
   request
     .get(url+'/'+p)
     .set({
       'Host': 'www.xicidaili.com',
       'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36'
     })
-    .timeout(5000)
+    .timeout(10*1000)
     .end(function(err, res){
       if(err){
         console.log('[proxy getter] xici error', err.status);
@@ -49,7 +54,7 @@ function getXiciPage(page, callback){
 
       var $ = cheerio.load(res.text),
           list = $('#ip_list').find('tr');
-          console.log(list.length);
+          // console.log(list.length);
       list.each(function(i, elem) {
         try {
           var tds = $(this).find('td');
@@ -62,7 +67,10 @@ function getXiciPage(page, callback){
           }
         } catch(e) {}
       });
-      console.log(result);
+      // console.log(result);
+      console.log('[proxy getter] xici page', p, result.length);
       if(callback) callback(result);
     });
 }
+
+module.exports = getList;
