@@ -6,10 +6,13 @@ var goodList = [];
 var nomore = 0;
 var maxCount = 15;
 var timer;
+var db = require('../db/index');
+
+var toTable = db.createTable('old-proxy');
 
 var fs = require('fs');
 var newProxyList = function(callback){
-  var data = require('../db/db-files/all.db.json');
+  var data = db.getTable('all').get();
   console.log('got from file!', data.ips.length);
   if(callback) callback(data.ips);
 };
@@ -18,18 +21,18 @@ step();
 get();
 //setTimeout(get, 5000);
 function start(){
-  timer = setInterval(step, 60*1000);
+  timer = setInterval(step, 5*60*1000);
 }
 
 function step(){
-  nomore += 1;
+  nomore += 0;
   if(nomore>=maxCount){
     if(nomore==maxCount) console.log('[timer pause]');
     return;
   }
   console.log('[get new proxy] nomore:', nomore);
   testAll(function(res){
-    console.log('total', res.list.length);
+    console.log('new proxy list', res.list.length);
     if(res&&res.list&&(res.list.length>2||(proxyList.length<2&&res.list.length>0))){
       console.log('new examed list:', res.list.length);
       proxyList = res.list;
@@ -38,11 +41,15 @@ function step(){
       console.log('new good list:', res.goodList.length);
       goodList = res.goodList;
     }
+    toTable.set({
+      ips: proxyList,
+      goodList: goodList
+    })
   });
 }
 
 function testAll(callback){
-  getList(function(list){
+  getList(function(bigList){
 
     // something wrong on win10
     // if(callback) return callback({
@@ -51,40 +58,47 @@ function testAll(callback){
     //   //ip: res,
     //   //time: min
     // });
-
-    var c = list.length;
-    console.log('new list length:', c);
-    var result = {};
-    list.forEach(function(ins){
-      test(ins, function(score){
-        result[ins] = score;
-        c -= 1;
-        if(c==0){
-          console.log(result);
-          var min = 3;
-          var res = '';
-          var tmp = [], gList = [];
-          for(var ip in result){
-            if(result[ip]<min){
-              //min = result[ip];
-              //res = ip;
-              tmp.push(ip);
-              console.log('[proxy ip]', ip, result[ip]);
+    console.log('total', bigList.length);
+    var ok = [],
+        good = [];
+    work(); //start
+    function work(){
+      var list = bigList.splice(0, 50);
+      var c = list.length;
+      if(c===0){
+        if(callback) callback({
+          list: ok,
+          gList: good
+        })
+        return;
+      }
+      console.log('new:', c, 'left', bigList.length);
+      var result = {};
+      list.forEach(function(ins){
+        test(ins, function(score){
+          result[ins] = score;
+          c -= 1;
+          if(c===0){
+            // console.log(result);
+            var min = 3;
+            var res = '';
+            for(var ip in result){
+              if(result[ip]<min){
+                //min = result[ip];
+                //res = ip;
+                ok.push(ip);
+                console.log('[proxy ip]', ip, result[ip]);
+              }
+              if(result[ip]<2){
+                good.push(ip);
+              }
             }
-            if(result[ip]<2){
-              gList.push(ip);
-            }
+            // next
+            work();
           }
-          //return console.log(res, min);
-          if(callback) return callback({
-            list: tmp,
-            goodList: gList
-            //ip: res,
-            //time: min
-          });
-        }
-      })
-    })
+        });
+      });
+    }
   });
 }
 
@@ -172,7 +186,7 @@ function returnList(){
 module.exports = {
   get: get,
   returnList: returnList
-}
+};
 /*
 var proxy = 'http://183.245.147.24:80'; //403
 var proxy = 'http://218.207.176.14:80';
