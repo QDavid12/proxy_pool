@@ -56,7 +56,7 @@ DB.prototype = {
     }
   },
   get: function(){
-    return extend({}, this.data);
+    return JSON.parse(JSON.stringify(this.data));
   }
 };
 
