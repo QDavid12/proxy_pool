@@ -29,7 +29,10 @@ function Validator(params){
   this.working = false;
 
   if(this.interval>=1){
-    this.timer = setInterval(this.work, this.interval*60*1000);
+    var that = this;
+    this.timer = setInterval(function(){
+      that.work();
+    }, that.interval*60*1000);
   }
 }
 

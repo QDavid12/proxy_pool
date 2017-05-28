@@ -8,7 +8,7 @@ var v = new Validator({
   to: 'ok',
   interval: -1,
   times: 3,
-  workers: 100,
+  workers: 20,
   maxTime: 5,
   checkFunc: function(proxy, callback){
     var start = (new Date()).getTime();

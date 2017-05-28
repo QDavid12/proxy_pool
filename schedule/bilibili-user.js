@@ -3,6 +3,7 @@ var Validator = require('./validator');
 
 var v = new Validator({
   name: 'bilibili-user',
+  // from: 'all',
   from: 'ok',
   to: 'bilibili-user',
   interval: 3,

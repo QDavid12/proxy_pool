@@ -4,6 +4,7 @@ var Validator = require('./validator');
 
 var v = new Validator({
   name: 'bilibili-video',
+  // from: 'all',
   from: 'ok',
   to: 'bilibili-video',
   interval: 3,
