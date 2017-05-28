@@ -8,13 +8,14 @@ var maxCount = 15;
 var timer;
 var db = require('../db/index');
 
-var toTable = db.createTable('old-proxy');
+var toTable = db.getTable('old-proxy');
 
 var fs = require('fs');
 var newProxyList = function(callback){
   var data = db.getTable('all').get();
-  console.log('got from file!', data.ips.length);
-  if(callback) callback(data.ips);
+  var ips = (data&&data.ips)?data.ips:[];
+  console.log('got from file!', ips.length);
+  if(callback) callback(ips);
 };
 
 step();
@@ -89,7 +90,7 @@ function testAll(callback){
                 ok.push(ip);
                 console.log('[proxy ip]', ip, result[ip]);
               }
-              if(result[ip]<2){
+              if(result[ip]<1.5){
                 good.push(ip);
               }
             }

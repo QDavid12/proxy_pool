@@ -5,3 +5,6 @@ var schedule = require('./schedule/index');
 proxy_getter.start();
 schedule.start();
 api_server.start();
+
+// old
+require('./schedule/old-proxy');
