@@ -62,7 +62,8 @@ Validator.prototype = {
           console.log('[validator]', this.name, 'workers left:', this.workersCount);
         }
         if(this.workersCount===0){
-          if(this.result.length>=3){
+          var min = this.name==='all' ? 10 : 3;
+          if(this.result.length>=min){
             this.toDB.set({
               ips: this.result
             });
