@@ -4,6 +4,13 @@ var db = require('../db/index');
 var fs = require('fs');
 var path = require('path');
 
+app.use(function(req, res, next){
+  if(req.query.key!='1233'){
+    return;
+  }
+  next();
+});
+
 function apiRouter(req, res, next){
   var type = req.params.type||'all';
   try {
