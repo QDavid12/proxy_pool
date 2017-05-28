@@ -24,7 +24,7 @@ var v = new Validator({
       .set('Upgrade-Insecure-Requests', '1')
       .set('Host', 'www.baidu.com')
       .proxy(proxy)
-      .timeout(5000)
+      .timeout(5*1000)
       .end(function(err, res){
         if(res&&res.text==undefined) err={status: 400};
         var end = err?(err.status==403?(start+20000):(start+5000)):(new Date()).getTime();

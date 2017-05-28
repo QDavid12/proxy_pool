@@ -8,7 +8,7 @@ if(require.main===module){
 }
 
 function getList(callback){
-  var pages = 10; // how many pages
+  var pages = 3; // how many pages
   var count = 1;
   var res = [];
   var endCallback = function(list){
