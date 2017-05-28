@@ -1,14 +1,47 @@
 var request = require('superagent');
 var cheerio = require('cheerio');
 
-var url = 'http://www.xicidaili.com/nn/';
+var url,
+    Pages = 10;
 
 if(require.main===module){
-  getList();
+  getList(function(list){
+    console.log(list.length);
+  });
 }
 
 function getList(callback){
-  var pages = 3; // how many pages
+  var res = [];
+  getNTList(function(ntlist){
+    res = Array.prototype.concat(res, ntlist||[]);
+    getNNList(function(nnlist){
+      res = Array.prototype.concat(res, nnlist||[]);
+      if(callback) callback(res);
+    });
+  });
+}
+
+function getNNList(callback){
+  url = 'http://www.xicidaili.com/nn/';
+  var pages = Pages||6; // how many pages
+  var count = 1;
+  var res = [];
+  var endCallback = function(list){
+    pages--;
+    res = Array.prototype.concat(res, list||[]);
+    if(pages===0){
+      console.log('[proxy getter] xici got', res.length);
+      if(callback) callback(res);
+      return;
+    }
+    getXiciPage(++count, endCallback);
+  };
+  getXiciPage(1, endCallback);
+}
+
+function getNTList(callback){
+  url = 'http://www.xicidaili.com/nt/';
+  var pages = Pages||6; // how many pages
   var count = 1;
   var res = [];
   var endCallback = function(list){
@@ -59,13 +92,18 @@ function getXiciPage(page, callback){
         try {
           var tds = $(this).find('td');
           if(tds.length>5){
-            var ins = {
-              ip: tds.eq(5).text().toLowerCase()+'://'+tds.eq(1).text(),
-              from: 'xici'
-            };
-            result.push(ins);
+            var speed = tds.eq(6).find('div').eq(0).attr('title');
+            speed = parseFloat(speed);
+            // console.log(speed);
+            if(speed<2){
+              var ins = {
+                ip: tds.eq(5).text().toLowerCase()+'://'+tds.eq(1).text(),
+                from: 'xici'
+              };
+              result.push(ins);
+            }
           }
-        } catch(e) {}
+        } catch(e) {console.log(e);}
       });
       // console.log(result);
       console.log('[proxy getter] xici page', p, result.length);
